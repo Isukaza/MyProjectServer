@@ -19,7 +19,7 @@ namespace MyProjectServer.Controllers
         {
             ListStaffDTO listStaffDTO = new();
 
-            var myProjectContext = _context.Staffs.AsNoTracking();
+            var myProjectContext = _context.Staffs.AsNoTracking().Include(c => c.Company).Include(s => s.Profile).Include(d => d.Depts);
 
             await myProjectContext.ForEachAsync(data => 
             {
