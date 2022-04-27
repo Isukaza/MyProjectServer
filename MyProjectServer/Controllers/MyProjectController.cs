@@ -38,7 +38,6 @@ namespace MyProjectServer.Controllers
             return new ObjectResult(str);
         }
 
-
         //Получение данных с БД
         public async Task<IActionResult> Read()
         {
@@ -46,9 +45,6 @@ namespace MyProjectServer.Controllers
 
             var myProjectContext = _context.Staffs.AsNoTracking().Include(c => c.Company).Include(s => s.Profile).Include(d => d.Depts);
 
-                WriteIndented = true
-            };
-            var myProjectContext = _context.Staffs.Include(c => c.Company).Include(s => s.Profile).Include(d => d.Depts);
             await myProjectContext.ForEachAsync(data =>
             {
                 listStaffDTO.Data.Add(new StaffDTO
