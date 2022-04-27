@@ -17,29 +17,6 @@ namespace MyProjectServer.Controllers
             _context = context;
         }
 
-        public async Task<IActionResult> STest()
-        {
-            ListStaffDTO listStaffDTO = new();
-
-            var myProjectContext = _context.Staffs.AsNoTracking().Include(c => c.Company).Include(s => s.Profile).Include(d => d.Depts);
-
-            await myProjectContext.ForEachAsync(data =>
-            {
-                listStaffDTO.Data.Add(new StaffDTO
-                {
-                    Id = data.Id,
-                    Name = data.Name,
-                    Company = data.Company.Name,
-                    DeptL = from item in data.Depts where item != null select item.Department,
-                    Login = data.Profile.Login,
-                    Password = data.Profile.Password
-                });
-            });
-
-            string str = JsonSerializer.Serialize(listStaffDTO, options);
-            return new ObjectResult(str);
-        }
-
         //Получение данных с БД
         public async Task<IActionResult> Read()
         {
