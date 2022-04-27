@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace MyProjectServer.Models
+﻿namespace MyProjectServer.Models
 {
     public class Dept
     {

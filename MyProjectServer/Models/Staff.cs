@@ -1,10 +1,7 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace MyProjectServer.Models
+﻿namespace MyProjectServer.Models
 {
     public class Staff
     {
-        [Required]
         public int Id { get; set; } 
         public string Name { get; set; }
         public int CompanyForeignKey { get; set; }  // внешний ключ

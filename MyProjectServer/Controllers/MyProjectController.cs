@@ -2,7 +2,6 @@
 using Microsoft.EntityFrameworkCore;
 using MyProjectServer.Data;
 using MyProjectServer.Models;
-using System.IO;
 using System.Text.Json;
 
 namespace MyProjectServer.Controllers
@@ -24,6 +23,7 @@ namespace MyProjectServer.Controllers
 
             var myProjectContext = _context.Staffs.AsNoTracking().Include(c => c.Company).Include(s => s.Profile).Include(d => d.Depts);
 
+            //Формирование данных отправки 
             await myProjectContext.ForEachAsync(data =>
             {
                 listStaffDTO.Data.Add(new StaffDTO
@@ -37,7 +37,6 @@ namespace MyProjectServer.Controllers
                 });
             });
 
-
             string str = JsonSerializer.Serialize(listStaffDTO, options);
             return new ObjectResult(str);
 
@@ -46,7 +45,7 @@ namespace MyProjectServer.Controllers
         //Добавление записи в БД
         public async Task<IActionResult> Create(string str)
         {
-            DataPage? data = JsonSerializer.Deserialize<DataPage>(str);
+            StaffDTO? data = JsonSerializer.Deserialize<StaffDTO>(str);
 
             Company? company = await _context.Companies.FirstAsync(c => c.Name == data.Company);
 
@@ -59,6 +58,7 @@ namespace MyProjectServer.Controllers
                 Company = company,
                 Profile = staffProfile
             };
+
             await _context.AddAsync(staff);
             await _context.SaveChangesAsync();
 
@@ -69,23 +69,26 @@ namespace MyProjectServer.Controllers
         public async Task<IActionResult> Delete(int id)
         {
             Staff? staff = await _context.Staffs.FirstAsync(f => f.Id == id);
+
             if (staff != null)
             {
                 _context.Staffs.Remove(staff);
                 await _context.SaveChangesAsync();
-            }
 
-            return new ObjectResult(staff)
+                return new OkResult();
+            }
+            else
             {
-                StatusCode = staff == null ? StatusCodes.Status204NoContent : StatusCodes.Status200OK
-            };
+                return new NoContentResult();
+            }
         }
 
         //Обновление записи в БД
         public async Task<IActionResult> Update(string str)
         {
-            DataPage? data = JsonSerializer.Deserialize<DataPage>(str);
+            StaffDTO? data = JsonSerializer.Deserialize<StaffDTO>(str);
             Staff? staff = await _context.Staffs.Include(p => p.Profile).Include(d => d.Depts).FirstAsync(f => f.Id == data.Id);
+           
             if (staff != null)
             {
                 staff.Name = data.Name;
@@ -93,8 +96,10 @@ namespace MyProjectServer.Controllers
                 staff.Depts = await (from item in _context.Depts where data.DeptL.Contains(item.Department) select item).ToListAsync();
                 staff.Profile.Login = data.Login;
                 staff.Profile.Password = data.Password;
+
                 _context.Update(staff);
                 await _context.SaveChangesAsync();
+
                 return new OkResult();
             }
             else

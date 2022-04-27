@@ -23,7 +23,6 @@ namespace MyProjectServer.Data
         
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            
             //Описание первичных ключей 
             modelBuilder.Entity<Company>()
                 .HasKey(c => c.Id);
