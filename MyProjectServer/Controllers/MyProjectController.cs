@@ -10,7 +10,7 @@ namespace MyProjectServer.Controllers
     {
         private readonly MyProjectContext _context;
         private readonly JsonSerializerOptions options = new() { WriteIndented = true };
-        //--------------------------
+
         public MyProjectController(MyProjectContext context)
         {
             _context = context;
