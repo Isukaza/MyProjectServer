@@ -65,12 +65,13 @@ namespace MyProjectServer.Controllers
             return new ObjectResult(str);
 
         }
+        
         //Добавление записи в БД
         public async Task<IActionResult> Create(string str)
         {
             DataPage? data = JsonSerializer.Deserialize<DataPage>(str);
 
-            Company? company = await _context.Companies.FirstOrDefaultAsync(c => c.Name == data.Company);
+            Company? company = await _context.Companies.FirstAsync(c => c.Name == data.Company);
 
             StaffProfile? staffProfile = new() { Login = data.Login, Password = data.Password };
 
@@ -85,50 +86,43 @@ namespace MyProjectServer.Controllers
             await _context.SaveChangesAsync();
 
             return new OkResult();
-
         }
+
         //Удаление записи из БД
         public async Task<IActionResult> Delete(int id)
         {
-                Staff? staff = await _context.Staffs.FirstOrDefaultAsync(f => f.Id == id);
-                if (staff != null)
-                {
-                    _context.Staffs.Remove(staff);
-                    await _context.SaveChangesAsync();
-                }
+            Staff? staff = await _context.Staffs.FirstAsync(f => f.Id == id);
+            if (staff != null)
+            {
+                _context.Staffs.Remove(staff);
+                await _context.SaveChangesAsync();
+            }
 
-                return new ObjectResult(staff)
-                {
-                    StatusCode = staff == null ? StatusCodes.Status204NoContent : StatusCodes.Status200OK
-                };
+            return new ObjectResult(staff)
+            {
+                StatusCode = staff == null ? StatusCodes.Status204NoContent : StatusCodes.Status200OK
+            };
         }
+
         //Обновление записи в БД
         public async Task<IActionResult> Update(string str)
         {
-            try
+            DataPage? data = JsonSerializer.Deserialize<DataPage>(str);
+            Staff? staff = await _context.Staffs.Include(p => p.Profile).Include(d => d.Depts).FirstAsync(f => f.Id == data.Id);
+            if (staff != null)
             {
-                DataPage? data = JsonSerializer.Deserialize<DataPage>(str);
-                Staff? staff = await _context.Staffs.Include(c => c.Company).Include(s => s.Profile).Include(d => d.Depts).FirstOrDefaultAsync(f => f.Id == data.Id);
-                if (staff != null)
-                {
-                    staff.Name = data.Name;
-                    staff.Company = await _context.Companies.FirstOrDefaultAsync(c => c.Name == data.Company);
-                    staff.Profile.Login = data.Login;
-                    staff.Profile.Password = data.Password;
-                    staff.Depts = await (from item in _context.Depts where data.DeptL.Contains(item.Department) select item).ToListAsync();
-                    
-                    await _context.SaveChangesAsync();
-                }
-                return new ObjectResult(staff)
-                {
-                    StatusCode = staff == null ? StatusCodes.Status204NoContent : StatusCodes.Status200OK
-                };
+                staff.Name = data.Name;
+                staff.Company = await _context.Companies.FirstOrDefaultAsync(c => c.Name == data.Company);
+                staff.Depts = await (from item in _context.Depts where data.DeptL.Contains(item.Department) select item).ToListAsync();
+                staff.Profile.Login = data.Login;
+                staff.Profile.Password = data.Password;
+                _context.Update(staff);
+                await _context.SaveChangesAsync();
+                return new OkResult();
             }
-            catch (Exception ex)
+            else
             {
-                using StreamWriter write = new(Directory.GetCurrentDirectory() + "\\Log.txt");
-                write.WriteLine(ex.Message);
-                return Accepted();
+                return new NoContentResult();
             }
         }
     }
