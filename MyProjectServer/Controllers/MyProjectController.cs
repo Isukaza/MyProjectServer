@@ -90,7 +90,7 @@ namespace MyProjectServer.Controllers
         //Удаление записи из БД
         public async Task<IActionResult> Delete(int id)
         {
-                Staff? staff = await _context.Staffs.Include(c => c.Company).Include(s => s.Profile).Include(d => d.Depts).FirstOrDefaultAsync(f => f.Id == id);
+                Staff? staff = await _context.Staffs.FirstOrDefaultAsync(f => f.Id == id);
                 if (staff != null)
                 {
                     _context.Staffs.Remove(staff);
@@ -105,38 +105,31 @@ namespace MyProjectServer.Controllers
         //Обновление записи в БД
         public async Task<IActionResult> Update(string str)
         {
-            DataPage? data = JsonSerializer.Deserialize<DataPage>(str);
-            Staff? staff = await _context.Staffs.FirstOrDefaultAsync(f => f.Id == data.Id);
-            if (staff != null)
+            try
             {
-                if (data.Name != null) staff.Name = data.Name;
-                if (data.Company != null) staff.Company = await _context.Companies.FirstOrDefaultAsync(c => c.Name == data.Company);
-                if (data.Login != null) staff.Profile.Login = data.Login;
-                if (data.Password != null) staff.Profile.Password = data.Password;
-                if (data.DeptL != null)
+                DataPage? data = JsonSerializer.Deserialize<DataPage>(str);
+                Staff? staff = await _context.Staffs.Include(c => c.Company).Include(s => s.Profile).Include(d => d.Depts).FirstOrDefaultAsync(f => f.Id == data.Id);
+                if (staff != null)
                 {
-                    staff.Depts.Clear();
-                    foreach (string item in data.DeptL)
-                    {
-                        staff.Depts.Add(await _context.Depts.FirstOrDefaultAsync(d => d.Department == item));
-                    }
+                    staff.Name = data.Name;
+                    staff.Company = await _context.Companies.FirstOrDefaultAsync(c => c.Name == data.Company);
+                    staff.Profile.Login = data.Login;
+                    staff.Profile.Password = data.Password;
+                    staff.Depts = await (from item in _context.Depts where data.DeptL.Contains(item.Department) select item).ToListAsync();
+                    
+                    await _context.SaveChangesAsync();
                 }
-                await _context.SaveChangesAsync();
+                return new ObjectResult(staff)
+                {
+                    StatusCode = staff == null ? StatusCodes.Status204NoContent : StatusCodes.Status200OK
+                };
             }
-            return new ObjectResult(staff)
+            catch (Exception ex)
             {
-                StatusCode = staff == null ? StatusCodes.Status204NoContent : StatusCodes.Status200OK
-            };
-        }
-        //Возвращает список строк отделов в которых находиться сотрудник для сериализации 
-        public List<string> DeptToString(ICollection<Dept> depts)
-        {
-            List<string> buff = new();
-            foreach (var item in depts)
-            {
-                buff.Add(item.Department);
+                using StreamWriter write = new(Directory.GetCurrentDirectory() + "\\Log.txt");
+                write.WriteLine(ex.Message);
+                return Accepted();
             }
-            return buff;
         }
     }
 }
