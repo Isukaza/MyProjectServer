@@ -6,7 +6,7 @@
     },
     "mssql3": {
       "type": "mssql.local",
-      "connectionId": "ConnectionStrings:MyProjectContext"
+      "connectionId": "ConnectionStrings:MyProjectDbContext"
     }
   }
 }

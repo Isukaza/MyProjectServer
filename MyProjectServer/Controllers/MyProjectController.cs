@@ -11,6 +11,16 @@ namespace MyProjectServer.Controllers
         private readonly MyProjectContext _context;
         private readonly JsonSerializerOptions options = new() { WriteIndented = true };
 
+        readonly Func<ICollection<Dept>, List<string>> DeptToList = list => 
+        { 
+            List<string> list_return = new();
+            foreach (var item in list)
+            {
+                list_return.Add(item.Department);
+            }
+            return list_return;
+        };
+
         public MyProjectController(MyProjectContext context)
         {
             _context = context;
@@ -31,7 +41,7 @@ namespace MyProjectServer.Controllers
                     Id = data.Id,
                     Name = data.Name,
                     Company = data.Company.Name,
-                    DeptL = from item in data.Depts where item != null select item.Department,
+                    DeptL = DeptToList(data.Depts),
                     Login = data.Profile.Login,
                     Password = data.Profile.Password
                 });
@@ -41,7 +51,7 @@ namespace MyProjectServer.Controllers
             return new ObjectResult(str);
 
         }
-        
+
         //Добавление записи в БД
         public async Task<IActionResult> Create(string str)
         {
@@ -88,7 +98,7 @@ namespace MyProjectServer.Controllers
         {
             StaffDTO? data = JsonSerializer.Deserialize<StaffDTO>(str);
             Staff? staff = await _context.Staffs.Include(p => p.Profile).Include(d => d.Depts).FirstAsync(f => f.Id == data.Id);
-           
+
             if (staff != null)
             {
                 staff.Name = data.Name;

@@ -1,5 +1,4 @@
-﻿#nullable disable
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using MyProjectServer.Models;
 
 namespace MyProjectServer.Data
@@ -16,7 +15,7 @@ namespace MyProjectServer.Data
         {
             Database.EnsureCreated();
         }
-        
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             //Описание первичных ключей 
@@ -42,13 +41,13 @@ namespace MyProjectServer.Data
                 .HasOne(p => p.Profile)
                 .WithOne(p => p.Staff)
                 .HasForeignKey<StaffProfile>(p => p.StaffForeignKey);
-            
+
             //Данные для базовго заполнения БД
-           modelBuilder.Entity<Staff>().HasData(
-                new Staff[]{
+            modelBuilder.Entity<Staff>().HasData(
+                 new Staff[]{
                     new Staff { Id = 1, Name="Tom", Depts = null, CompanyForeignKey =1},
                     new Staff { Id = 2, Name="Alice", Depts = null, CompanyForeignKey =2}
-                });
+                 });
 
 
             modelBuilder.Entity<Company>().HasData(
@@ -68,9 +67,9 @@ namespace MyProjectServer.Data
                     new StaffProfile { Id = 1, Login="Tom", Password = "123dd3", StaffForeignKey = 1},
                     new StaffProfile { Id = 2, Login="Alice", Password = "3g223g32", StaffForeignKey = 2}
                });
-           
+
         }
-        
+
         public static DbContextOptions<MyProjectContext> CreateOption()
         {
             ConfigurationBuilder builder = (ConfigurationBuilder)new ConfigurationBuilder()
