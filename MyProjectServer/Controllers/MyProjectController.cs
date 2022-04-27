@@ -38,6 +38,7 @@ namespace MyProjectServer.Controllers
             return new ObjectResult(str);
         }
 
+
         //Получение данных с БД
         public async Task<IActionResult> Read()
         {
@@ -45,6 +46,9 @@ namespace MyProjectServer.Controllers
 
             var myProjectContext = _context.Staffs.AsNoTracking().Include(c => c.Company).Include(s => s.Profile).Include(d => d.Depts);
 
+                WriteIndented = true
+            };
+            var myProjectContext = _context.Staffs.Include(c => c.Company).Include(s => s.Profile).Include(d => d.Depts);
             await myProjectContext.ForEachAsync(data =>
             {
                 listStaffDTO.Data.Add(new StaffDTO
@@ -70,7 +74,9 @@ namespace MyProjectServer.Controllers
             DataPage? data = JsonSerializer.Deserialize<DataPage>(str);
 
             Company? company = await _context.Companies.FirstOrDefaultAsync(c => c.Name == data.Company);
+
             StaffProfile? staffProfile = new() { Login = data.Login, Password = data.Password };
+
             Staff? staff = new()
             {
                 Name = data.Name,
@@ -82,6 +88,7 @@ namespace MyProjectServer.Controllers
 
             await _context.AddAsync(staff);
             await _context.SaveChangesAsync();
+
             return new OkResult();
         }
         //Удаление записи из БД
