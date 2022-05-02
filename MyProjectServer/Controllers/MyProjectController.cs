@@ -57,28 +57,32 @@ namespace MyProjectServer.Controllers
         {
             StaffDTO? data = JsonSerializer.Deserialize<StaffDTO>(str);
 
-            Company? company = await _context.Companies.FirstAsync(c => c.Name == data.Company);
-
-            StaffProfile? staffProfile = new() { Login = data.Login, Password = data.Password };
-
-            Staff? staff = new()
+            if (data.Name != null && data.Company != null && data.DeptL != null && data.Login != null && data.Password != null)
             {
-                Name = data.Name,
-                Depts = await (from item in _context.Depts where data.DeptL.Contains(item.Department) select item).ToListAsync(),
-                Company = company,
-                Profile = staffProfile
-            };
+                Company? company = await _context.Companies.FirstOrDefaultAsync(c => c.Name == data.Company);
 
-            await _context.AddAsync(staff);
-            await _context.SaveChangesAsync();
+                StaffProfile? staffProfile = new() { Login = data.Login, Password = data.Password };
 
-            return new OkResult();
+                Staff? staff = new()
+                {
+                    Name = data.Name,
+                    Depts = await (from item in _context.Depts where data.DeptL.Contains(item.Department) select item).ToListAsync(),
+                    Company = company,
+                    Profile = staffProfile
+                };
+
+                await _context.AddAsync(staff);
+                await _context.SaveChangesAsync();
+
+                return new OkResult();
+            }
+            return new BadRequestResult();
         }
 
         //Удаление записи из БД
         public async Task<IActionResult> Delete(int id)
         {
-            Staff? staff = await _context.Staffs.FirstAsync(f => f.Id == id);
+            Staff? staff = await _context.Staffs.FirstOrDefaultAsync(f => f.Id == id);
 
             if (staff != null)
             {
@@ -97,7 +101,7 @@ namespace MyProjectServer.Controllers
         public async Task<IActionResult> Update(string str)
         {
             StaffDTO? data = JsonSerializer.Deserialize<StaffDTO>(str);
-            Staff? staff = await _context.Staffs.Include(p => p.Profile).Include(d => d.Depts).FirstAsync(f => f.Id == data.Id);
+            Staff? staff = await _context.Staffs.Include(p => p.Profile).Include(d => d.Depts).FirstOrDefaultAsync(f => f.Id == data.Id);
 
             if (staff != null)
             {
