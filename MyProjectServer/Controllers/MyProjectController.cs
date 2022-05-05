@@ -9,7 +9,6 @@ namespace MyProjectServer.Controllers
     public class MyProjectController : Controller
     {
         private readonly MyProjectContext _context;
-        private readonly JsonSerializerOptions options = new() { WriteIndented = true };
 
         readonly Func<ICollection<Dept>, List<string>> DeptToList = list => 
         { 
@@ -25,7 +24,6 @@ namespace MyProjectServer.Controllers
         {
             _context = context;
         }
-
         //Получение данных с БД
         public async Task<IActionResult> Read()
         {
@@ -47,9 +45,7 @@ namespace MyProjectServer.Controllers
                 });
             });
 
-            string str = JsonSerializer.Serialize(listStaffDTO, options);
-            return new ObjectResult(str);
-
+            return new JsonResult(listStaffDTO);
         }
 
         //Добавление записи в БД
